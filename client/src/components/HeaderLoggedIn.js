@@ -1,16 +1,12 @@
 import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
-import ExampleContext from '../contexts/ExampleContext';
+import DispatchContext from '../contexts/DispatchContext';
+import StateContext from '../contexts/StateContext';
 
 export default function HeaderLoggedIn() {
-  const { setLoggedIn } = useContext(ExampleContext);
+  const appDispatch = useContext(DispatchContext);
+  const appState = useContext(StateContext);
 
-  const handleLogout = () => {
-    setLoggedIn(false);
-    localStorage.removeItem('userToken');
-    localStorage.removeItem('userName');
-    localStorage.removeItem('userAvatar');
-  };
   /* eslint-disable */
   return (
     <div className="flex-row my-3 my-md-0">
@@ -24,14 +20,17 @@ export default function HeaderLoggedIn() {
       <a href="#" className="mr-2">
         <img
           className="small-header-avatar"
-          src={localStorage.getItem('userAvatar')}
+          src={appState.user.avatar}
           alt="user profile"
         />
       </a>
       <Link className="btn btn-sm btn-success mr-2" to="/create-post">
         Create Post
       </Link>
-      <button onClick={handleLogout} className="btn btn-sm btn-secondary">
+      <button
+        onClick={() => appDispatch({ type: 'logout' })}
+        className="btn btn-sm btn-secondary"
+      >
         Sign Out
       </button>
     </div>
