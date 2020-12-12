@@ -15,6 +15,9 @@ import FlashMessages from './components/FlashMessages';
 
 import StateContext from './contexts/StateContext';
 import DispatchContext from './contexts/DispatchContext';
+import Profile from './components/Profile';
+import EditPost from './components/EditPost';
+import NotFound from './components/NotFound';
 
 Axios.defaults.baseURL = 'http://localhost:8080';
 
@@ -68,11 +71,18 @@ function App() {
           <FlashMessages messages={state.flashMessages} />
           <Header />
           <Switch>
+            <Route path="/profile/:username">
+              <Profile />
+            </Route>
+
             <Route path="/" exact>
               {state.loggedIn ? <Home /> : <HomeGuest />}
             </Route>
-            <Route path="/post/:id">
+            <Route path="/post/:id" exact>
               <ViewSinglePost />
+            </Route>
+            <Route path="/post/:id/edit" exact>
+              <EditPost />
             </Route>
 
             <Route path="/create-post">
@@ -83,6 +93,9 @@ function App() {
             </Route>
             <Route path="/terms" exact>
               <Terms />
+            </Route>
+            <Route>
+              <NotFound/>
             </Route>
           </Switch>
           <Footer />
