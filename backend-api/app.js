@@ -2,6 +2,7 @@ const express = require("express")
 const app = express()
 const sanitizeHTML = require("sanitize-html")
 const jwt = require("jsonwebtoken")
+const socketIo  = require("socket.io");
 
 app.use(express.urlencoded({ extended: false }))
 app.use(express.json())
@@ -9,14 +10,17 @@ app.use(express.json())
 app.use("/", require("./router"))
 
 const server = require("http").createServer(app)
-const io = require("socket.io")(server, {
-  pingTimeout: 30000
-})
+// const io = require("socket.io")(server, {
+//   pingTimeout: 30000
+// })
+const io = socketIo(server); 
 
 io.on("connection", function(socket) {
+  console.log('Socket connected')
   socket.on("chatFromBrowser", function(data) {
     try {
-      let user = jwt.verify(data.token, process.env.JWTSECRET)
+      let user = jwt.verify(data.token, process.env.JWTSECRET);
+      console.log(data.message)
       socket.broadcast.emit("chatFromServer", { message: sanitizeHTML(data.message, { allowedTags: [], allowedAttributes: {} }), username: user.username, avatar: user.avatar })
     } catch (e) {
       console.log("Not a valid token for chat.")
