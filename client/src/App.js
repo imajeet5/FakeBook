@@ -36,6 +36,7 @@ function App() {
     },
     isSearchOpen: false,
     isChatOpen: false,
+    unreadChatCount: 0,
   };
 
   function ourReducer(draft, action) {
@@ -46,6 +47,9 @@ function App() {
         break;
       case 'logout':
         draft.loggedIn = false;
+        draft.user.token = null;
+        draft.user.username = null;
+        draft.user.avatar = null;
         break;
       case 'flashMessage':
         draft.flashMessages.push(action.value);
@@ -61,6 +65,12 @@ function App() {
         return;
       case 'closeChat':
         draft.isChatOpen = false;
+        return;
+      case 'incrementUnreadChatCount':
+        draft.unreadChatCount++;
+        return;
+      case 'clearUnreadChatCount':
+        draft.unreadChatCount = 0;
         return;
       default:
         return;
@@ -79,6 +89,7 @@ function App() {
       localStorage.removeItem('userName', state.user.username);
       localStorage.removeItem('userAvatar', state.user.avatar);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.loggedIn]);
 
   return (

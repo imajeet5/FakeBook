@@ -35,6 +35,7 @@ export default function Home() {
     return () => {
       ourRequest.cancel();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (state.isLoading) {

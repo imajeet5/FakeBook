@@ -1,24 +1,149 @@
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import Page from './Page';
 import Axios from 'axios';
+import { useImmerReducer } from 'use-immer';
+import { CSSTransition } from 'react-transition-group';
 
 export default function HomeGuest() {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  // const [username, setUsername] = useState('');
+  // const [email, setEmail] = useState('');
+  // const [password, setPassword] = useState('');
 
-  async function handleSubmit(e) {
-    e.preventDefault();
-    try {
-      await Axios.post('/register', {
-        username,
-        email,
-        password,
-      });
-      console.log('User was successfully created');
-    } catch (error) {
-      console.error(error);
+  const initialState = {
+    username: {
+      value: '',
+      hasErrors: false,
+      message: '',
+      isUnique: false,
+      checkCount: 0,
+    },
+    email: {
+      value: '',
+      hasErrors: false,
+      message: '',
+      isUnique: false,
+      checkCount: 0,
+    },
+    password: {
+      value: '',
+      hasErrors: false,
+      message: '',
+    },
+    submitCount: 0,
+  };
+
+  function ourReducer(draft, action) {
+    switch (action.type) {
+      case 'usernameImmediately':
+        draft.username.hasErrors = false;
+        draft.username.value = action.value;
+        if (draft.username.value.length > 30) {
+          draft.username.hasErrors = true;
+          draft.username.message = 'Username cannot exceed 30 characters.';
+        }
+        if (
+          draft.username.value &&
+          !/^([a-zA-Z0-9]+)$/.test(draft.username.value)
+        ) {
+          draft.username.hasErrors = true;
+          draft.username.message =
+            'Username can only contain letters and numbers.';
+        }
+        return;
+      case 'usernameAfterDelay':
+        if (draft.username.value.length < 3) {
+          draft.username.hasErrors = true;
+          draft.username.message = 'Username must be at least 3 characters.';
+        }
+        if (!draft.hasErrors && !action.noRequest) {
+          draft.username.checkCount++;
+        }
+        return;
+      case 'usernameUniqueResults':
+        if (action.value) {
+          draft.username.hasErrors = true;
+          draft.username.isUnique = false;
+          draft.username.message = 'That username is already taken.';
+        } else {
+          draft.username.isUnique = true;
+        }
+        return;
+      case 'emailImmediately':
+        draft.email.hasErrors = false;
+        draft.email.value = action.value;
+        return;
+      case 'emailAfterDelay':
+        if (!/^\S+@\S+$/.test(draft.email.value)) {
+          draft.email.hasErrors = true;
+          draft.email.message = 'You must provide a valid email address.';
+        }
+        if (!draft.email.hasErrors && !action.noRequest) {
+          draft.email.checkCount++;
+        }
+        return;
+      case 'emailUniqueResults':
+        if (action.value) {
+          draft.email.hasErrors = true;
+          draft.email.isUnique = false;
+          draft.email.message = 'That email is already being used.';
+        } else {
+          draft.email.isUnique = true;
+        }
+        return;
+      case 'passwordImmediately':
+        draft.password.hasErrors = false;
+        draft.password.value = action.value;
+        if (draft.password.value.length > 50) {
+          draft.password.hasErrors = true;
+          draft.password.message = 'Password cannot exceed 50 characters.';
+        }
+        return;
+      case 'passwordAfterDelay':
+        if (draft.password.value.length < 12) {
+          draft.password.hasErrors = true;
+          draft.password.message = 'Password must be at least 12 characters.';
+        }
+        return;
+      case 'submitForm':
+        if (
+          !draft.username.hasErrors &&
+          draft.username.isUnique &&
+          !draft.email.hasErrors &&
+          draft.email.isUnique &&
+          !draft.password.hasErrors
+        ) {
+          draft.submitCount++;
+        }
+        return;
+      default:
+        return;
     }
+  }
+
+  const [state, dispatch] = useImmerReducer(ourReducer, initialState);
+
+  useEffect(() => {
+    if (state.username.value) {
+      const delay = setTimeout(() => {
+        dispatch({ type: 'usernameAfterDelay' });
+      }, 800);
+      return () => clearTimeout(delay);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.username.value]);
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    // try {
+    //   await Axios.post('/register', {
+    //     username,
+    //     email,
+    //     password,
+    //   });
+    //   console.log('User was successfully created');
+    // } catch (error) {
+    //   console.error(error);
+    // }
   }
 
   return (
@@ -47,8 +172,24 @@ export default function HomeGuest() {
                   type="text"
                   placeholder="Pick a username"
                   autoComplete="off"
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) =>
+                    dispatch({
+                      type: 'usernameImmediately',
+                      value: e.target.value,
+                    })
+                  }
+                  value={state.username.value}
                 />
+                <CSSTransition
+                  in={state.username.hasErrors}
+                  timeout={330}
+                  classNames="liveValidateMessage"
+                  unmountOnExit
+                >
+                  <div className="alert alert-danger small liveValidateMessage">
+                    {state.username.message}
+                  </div>
+                </CSSTransition>
               </div>
               <div className="form-group">
                 <label htmlFor="email-register" className="text-muted mb-1">
@@ -61,7 +202,12 @@ export default function HomeGuest() {
                   type="text"
                   placeholder="you@example.com"
                   autoComplete="off"
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) =>
+                    dispatch({
+                      type: 'emailImmediately',
+                      value: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="form-group">
@@ -74,7 +220,12 @@ export default function HomeGuest() {
                   className="form-control"
                   type="password"
                   placeholder="Create a password"
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) =>
+                    dispatch({
+                      type: 'passwordImmediately',
+                      value: e.target.value,
+                    })
+                  }
                 />
               </div>
               <button

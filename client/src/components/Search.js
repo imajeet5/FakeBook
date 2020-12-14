@@ -1,7 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import Axios from 'axios';
 import React, { useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
 import { useImmer } from 'use-immer';
 import DispatchContext from '../contexts/DispatchContext';
 import Post from './Post';

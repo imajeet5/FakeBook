@@ -16,13 +16,16 @@ function Chat() {
     chatMessages: [],
   });
 
+  // use to focus the input whenever the chat window open
   useEffect(() => {
     if (appState.isChatOpen) {
       chatField.current.focus();
       appDispatch({ type: 'clearUnreadChatCount' });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appState.isChatOpen]);
 
+  // listing to the incoming messages from the servers
   useEffect(() => {
     socket.on('connect', () => {
       console.log('Connected to socket server');
@@ -31,21 +34,24 @@ function Chat() {
     socket.on('disconnect', () => {
       console.log('Disconnected from the socket server');
     });
-    socket.on('error', () => {
-      console.log('Error in connecting');
-    });
+
     socket.on('chatFromServer', (message) => {
       setState((draft) => {
         draft.chatMessages.push(message);
       });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // listening for the change in chatMessages either by user type or through incoming from server
   useEffect(() => {
     chatLog.current.scrollTop = chatLog.current.scrollHeight;
+    // we only want to increase the chat count if least on message is there (not on first render)
+    // and if the chat window is not opened
     if (state.chatMessages.length && !appState.isChatOpen) {
       appDispatch({ type: 'incrementUnreadChatCount' });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.chatMessages]);
 
   function handleFieldChange(e) {
