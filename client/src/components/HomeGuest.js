@@ -1,13 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useContext, useEffect } from 'react';
 import Page from './Page';
 import Axios from 'axios';
 import { useImmerReducer } from 'use-immer';
 import { CSSTransition } from 'react-transition-group';
+import DispatchContext from '../contexts/DispatchContext';
 
 export default function HomeGuest() {
-  // const [username, setUsername] = useState('');
-  // const [email, setEmail] = useState('');
-  // const [password, setPassword] = useState('');
+  const appDispatch = useContext(DispatchContext);
 
   const initialState = {
     username: {
@@ -55,6 +54,7 @@ export default function HomeGuest() {
           draft.username.hasErrors = true;
           draft.username.message = 'Username must be at least 3 characters.';
         }
+        // if there are no error then we make an api request to check if the username is valid
         if (!draft.hasErrors && !action.noRequest) {
           draft.username.checkCount++;
         }
@@ -122,6 +122,7 @@ export default function HomeGuest() {
 
   const [state, dispatch] = useImmerReducer(ourReducer, initialState);
 
+  // use to dispatch action for validating the username
   useEffect(() => {
     if (state.username.value) {
       const delay = setTimeout(() => {
@@ -132,18 +133,116 @@ export default function HomeGuest() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.username.value]);
 
+  // use to dispatch action for validating the password
+  useEffect(() => {
+    if (state.email.value) {
+      const delay = setTimeout(() => {
+        dispatch({ type: 'emailAfterDelay' });
+      }, 800);
+      return () => clearTimeout(delay);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.email.value]);
+
+  useEffect(() => {
+    if (state.password.value) {
+      const delay = setTimeout(() => {
+        dispatch({ type: 'passwordAfterDelay' });
+      }, 800);
+      return () => clearTimeout(delay);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.password.value]);
+
+  // check if username exists
+  useEffect(() => {
+    if (state.username.checkCount) {
+      const ourRequest = Axios.CancelToken.source();
+      async function fetchResults() {
+        try {
+          const response = await Axios.post(
+            '/doesUsernameExist',
+            { username: state.username.value },
+            { cancelToken: ourRequest.token }
+          );
+          dispatch({ type: 'usernameUniqueResults', value: response.data });
+        } catch (e) {
+          console.log('There was a problem or the request was cancelled.');
+        }
+      }
+      fetchResults();
+      return () => ourRequest.cancel();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.username.checkCount]);
+
+  useEffect(() => {
+    if (state.email.checkCount) {
+      const ourRequest = Axios.CancelToken.source();
+      async function fetchResults() {
+        try {
+          const response = await Axios.post(
+            '/doesEmailExist',
+            { email: state.email.value },
+            { cancelToken: ourRequest.token }
+          );
+          dispatch({ type: 'emailUniqueResults', value: response.data });
+        } catch (e) {
+          console.log('There was a problem or the request was cancelled.');
+        }
+      }
+      fetchResults();
+      return () => ourRequest.cancel();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.email.checkCount]);
+
+  useEffect(() => {
+    if (state.submitCount) {
+      const ourRequest = Axios.CancelToken.source();
+      async function fetchResults() {
+        try {
+          const response = await Axios.post(
+            '/register',
+            {
+              username: state.username.value,
+              email: state.email.value,
+              password: state.password.value,
+            },
+            { cancelToken: ourRequest.token }
+          );
+          appDispatch({ type: 'login', data: response.data });
+          appDispatch({
+            type: 'flashMessage',
+            value: 'Congrats! Welcome to your new account.',
+          });
+        } catch (e) {
+          console.log('There was a problem or the request was cancelled.');
+        }
+      }
+      fetchResults();
+      return () => ourRequest.cancel();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.submitCount]);
+
   function handleSubmit(e) {
     e.preventDefault();
-    // try {
-    //   await Axios.post('/register', {
-    //     username,
-    //     email,
-    //     password,
-    //   });
-    //   console.log('User was successfully created');
-    // } catch (error) {
-    //   console.error(error);
-    // }
+    dispatch({ type: 'usernameImmediately', value: state.username.value });
+    dispatch({
+      type: 'usernameAfterDelay',
+      value: state.username.value,
+      noRequest: true,
+    });
+    dispatch({ type: 'emailImmediately', value: state.email.value });
+    dispatch({
+      type: 'emailAfterDelay',
+      value: state.email.value,
+      noRequest: true,
+    });
+    dispatch({ type: 'passwordImmediately', value: state.password.value });
+    dispatch({ type: 'passwordAfterDelay', value: state.password.value });
+    dispatch({ type: 'submitForm' });
   }
 
   return (
@@ -209,6 +308,16 @@ export default function HomeGuest() {
                     })
                   }
                 />
+                <CSSTransition
+                  in={state.email.hasErrors}
+                  timeout={330}
+                  classNames="liveValidateMessage"
+                  unmountOnExit
+                >
+                  <div className="alert alert-danger small liveValidateMessage">
+                    {state.email.message}
+                  </div>
+                </CSSTransition>
               </div>
               <div className="form-group">
                 <label htmlFor="password-register" className="text-muted mb-1">
@@ -227,6 +336,16 @@ export default function HomeGuest() {
                     })
                   }
                 />
+                <CSSTransition
+                  in={state.password.hasErrors}
+                  timeout={330}
+                  classNames="liveValidateMessage"
+                  unmountOnExit
+                >
+                  <div className="alert alert-danger small liveValidateMessage">
+                    {state.password.message}
+                  </div>
+                </CSSTransition>
               </div>
               <button
                 type="submit"

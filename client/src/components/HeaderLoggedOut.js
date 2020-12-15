@@ -10,19 +10,22 @@ export default function HeaderLoggedOut() {
   async function handleSubmit(e) {
     e.preventDefault();
     try {
-      const response = await Axios.post('/login', {
-        username,
-        password,
-      });
+      const response = await Axios.post('/login', { username, password });
       if (response.data) {
-      
-        console.log(response.data);
-        appDispatch({ type: 'login',data: response.data });
+        appDispatch({ type: 'login', data: response.data });
+        appDispatch({
+          type: 'flashMessage',
+          value: 'You have successfully logged in.',
+        });
       } else {
-        console.log('Incorrect username or password');
+        console.log('Incorrect username / password.');
+        appDispatch({
+          type: 'flashMessage',
+          value: 'Invalid username / password.',
+        });
       }
-    } catch (error) {
-      console.error(error);
+    } catch (e) {
+      console.log('There was a problem.');
     }
   }
 
