@@ -1,13 +1,17 @@
-import React, {useContext} from 'react';
+import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import StateContext from '../contexts/StateContext';
 import HeaderLoggedIn from './HeaderLoggedIn';
 import HeaderLoggedOut from './HeaderLoggedOut';
 
-export default function Header() {
-  
-  const appState = useContext(StateContext)
-  
+export default function Header({ staticEmpty }) {
+  const appState = useContext(StateContext);
+  const headerContent = appState.loggedIn ? (
+    <HeaderLoggedIn />
+  ) : (
+    <HeaderLoggedOut />
+  );
+
   return (
     <React.Fragment>
       <header className="header-bar bg-primary mb-3">
@@ -17,7 +21,7 @@ export default function Header() {
               FakeBook
             </Link>
           </h4>
-          {appState.loggedIn ? <HeaderLoggedIn /> : <HeaderLoggedOut />}
+          {!staticEmpty ? headerContent : ''}
         </div>
       </header>
     </React.Fragment>

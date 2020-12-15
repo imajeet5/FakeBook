@@ -48,6 +48,7 @@ export default function Profile() {
     return () => {
       currentRequest.cancel();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [username]);
 
   // to update the follower in db when ever follower is added
@@ -60,7 +61,7 @@ export default function Profile() {
 
       async function fetchData() {
         try {
-          const response = await Axios.post(
+          await Axios.post(
             `/addFollow/${state.profileData.profileUsername}`,
             {
               token: appState.user.token,
@@ -81,6 +82,7 @@ export default function Profile() {
         currentRequest.cancel();
       };
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.startFollowingRequestCount, username]);
 
   // to update the follower in db whenever the follower count decreases
@@ -94,7 +96,7 @@ export default function Profile() {
 
       async function fetchData() {
         try {
-          const response = await Axios.post(
+          await Axios.post(
             `/removeFollow/${state.profileData.profileUsername}`,
             { token: appState.user.token },
             { cancelToken: ourRequest.token }
@@ -113,6 +115,7 @@ export default function Profile() {
         ourRequest.cancel();
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.stopFollowingRequestCount]);
 
   function startFollowing() {

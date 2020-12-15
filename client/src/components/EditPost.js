@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { useImmerReducer } from 'use-immer';
 import Page from './Page';
 import { useParams, useHistory, Link } from 'react-router-dom';
@@ -120,6 +120,7 @@ function EditPost() {
     return () => {
       ourRequest.cancel();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -128,7 +129,7 @@ function EditPost() {
       const ourRequest = Axios.CancelToken.source();
       async function fetchPost() {
         try {
-          const response = await Axios.post(
+          await Axios.post(
             `/post/${id}/edit`,
             {
               title: state.title.value,
@@ -148,6 +149,7 @@ function EditPost() {
         ourRequest.cancel();
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.sendCount]);
 
   if (state.notFound) {

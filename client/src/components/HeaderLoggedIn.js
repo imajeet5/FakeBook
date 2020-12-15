@@ -13,6 +13,14 @@ export default function HeaderLoggedIn() {
     appDispatch({ type: 'openSearch' });
   }
 
+  function handleLogout() {
+    appDispatch({ type: 'logout' });
+    appDispatch({
+      type: 'flashMessage',
+      value: 'You have successfully logged out.',
+    });
+  }
+
   /* eslint-disable */
   return (
     <div className="flex-row my-3 my-md-0">
@@ -27,12 +35,22 @@ export default function HeaderLoggedIn() {
       </a>
       <ReactTooltip place="bottom" id="search" className="custom-tooltip" />{' '}
       <span
+        onClick={() => appDispatch({ type: 'toggleChat' })}
         data-for="chat"
         data-tip="Chat"
-        className="mr-2 header-chat-icon text-white"
+        className={
+          'mr-2 header-chat-icon ' +
+          (appState.unreadChatCount ? 'text-danger' : 'text-white')
+        }
       >
         <i className="fas fa-comment"></i>
-        <span className="chat-count-badge text-white"> </span>
+        {appState.unreadChatCount ? (
+          <span className="chat-count-badge text-white">
+            {appState.unreadChatCount < 10 ? appState.unreadChatCount : '9+'}
+          </span>
+        ) : (
+          ''
+        )}
       </span>
       <ReactTooltip place="bottom" id="chat" className="custom-tooltip" />{' '}
       <Link
@@ -47,10 +65,7 @@ export default function HeaderLoggedIn() {
       <Link className="btn btn-sm btn-success mr-2" to="/create-post">
         Create Post
       </Link>{' '}
-      <button
-        onClick={() => appDispatch({ type: 'logout' })}
-        className="btn btn-sm btn-secondary"
-      >
+      <button onClick={handleLogout} className="btn btn-sm btn-secondary">
         Sign Out
       </button>
     </div>
